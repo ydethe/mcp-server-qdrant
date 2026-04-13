@@ -56,9 +56,7 @@ class QdrantMCPServer(FastMCP):
 
         if embedding_provider_settings:
             self.embedding_provider_settings = embedding_provider_settings
-            self.embedding_provider = create_embedding_provider(
-                embedding_provider_settings
-            )
+            self.embedding_provider = create_embedding_provider(embedding_provider_settings)
         else:
             self.embedding_provider_settings = None
             self.embedding_provider = embedding_provider
@@ -70,6 +68,8 @@ class QdrantMCPServer(FastMCP):
             qdrant_settings.api_key,
             qdrant_settings.collection_name,
             self.embedding_provider,
+            qdrant_settings.document_key,
+            qdrant_settings.content_key,
             qdrant_settings.local_path,
             make_indexes(qdrant_settings.filterable_fields_dict()),
         )
@@ -117,7 +117,7 @@ class QdrantMCPServer(FastMCP):
             """
             await ctx.debug(f"Storing information {information} in Qdrant")
 
-            entry = Entry(content=information, metadata=metadata)
+            entry = Entry(content=information, document="__mcp_client__", metadata=metadata)
 
             await self.qdrant_connector.store(entry, collection_name=collection_name)
             if collection_name:
@@ -127,9 +127,7 @@ class QdrantMCPServer(FastMCP):
         async def find(
             ctx: Context,
             query: Annotated[str, Field(description="What to search for")],
-            collection_name: Annotated[
-                str, Field(description="The collection to search in")
-            ],
+            collection_name: Annotated[str, Field(description="The collection to search in")],
             query_filter: ArbitraryFilter | None = None,
         ) -> list[str] | None:
             """
@@ -167,9 +165,7 @@ class QdrantMCPServer(FastMCP):
         find_foo = find
         store_foo = store
 
-        filterable_conditions = (
-            self.qdrant_settings.filterable_fields_dict_with_conditions()
-        )
+        filterable_conditions = self.qdrant_settings.filterable_fields_dict_with_conditions()
 
         if len(filterable_conditions) > 0:
             find_foo = wrap_filters(find_foo, filterable_conditions)

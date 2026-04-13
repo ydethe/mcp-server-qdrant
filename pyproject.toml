@@ -1,6 +1,6 @@
 [project]
-name = "mcp-server-qdrant"
-version = "0.8.1"
+name = "mcp-server-qdrant-im"
+dynamic = ["version"]
 description = "MCP server for retrieving context from a Qdrant vector database"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -13,10 +13,26 @@ dependencies = [
 ]
 
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "uv-dynamic-versioning"]
 build-backend = "hatchling.build"
 
+[project.scripts]
+mcp-server-qdrant = "mcp_server_qdrant.main:main"
+
+[tool.hatch.version]
+source = "uv-dynamic-versioning"
+
+[tool.pylint.format]
+max-line-length = 100
+
+[tool.black]
+line-length = 100
+
+[tool.ruff]
+line-length = 100
+
 [tool.uv]
+resolution = "highest"
 dev-dependencies = [
     "ipdb>=0.13.13",
     "isort>=6.0.1",
@@ -26,10 +42,9 @@ dev-dependencies = [
     "pytest>=8.3.3",
     "pytest-asyncio>=0.23.0",
     "ruff>=0.8.0",
+    "black==22.3.0",
+    "blacken-docs==1.12.1",
 ]
-
-[project.scripts]
-mcp-server-qdrant = "mcp_server_qdrant.main:main"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

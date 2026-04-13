@@ -24,6 +24,8 @@ async def qdrant_connector(embedding_provider):
         qdrant_api_key=None,
         collection_name=collection_name,
         embedding_provider=embedding_provider,
+        document_key="document",
+        content_key="content",
     )
 
     yield connector
@@ -34,6 +36,7 @@ async def test_store_and_search(qdrant_connector):
     """Test storing an entry and then searching for it."""
     # Store a test entry
     test_entry = Entry(
+        document="__test_doc__",
         content="The quick brown fox jumps over the lazy dog",
         metadata={"source": "test", "importance": "high"},
     )
@@ -64,11 +67,20 @@ async def test_multiple_entries(qdrant_connector):
     # Store multiple entries
     entries = [
         Entry(
+            document="__test_doc__",
             content="Python is a programming language",
             metadata={"topic": "programming"},
         ),
-        Entry(content="The Eiffel Tower is in Paris", metadata={"topic": "landmarks"}),
-        Entry(content="Machine learning is a subset of AI", metadata={"topic": "AI"}),
+        Entry(
+            document="__test_doc__",
+            content="The Eiffel Tower is in Paris",
+            metadata={"topic": "landmarks"},
+        ),
+        Entry(
+            document="__test_doc__",
+            content="Machine learning is a subset of AI",
+            metadata={"topic": "AI"},
+        ),
     ]
 
     for entry in entries:
@@ -85,9 +97,7 @@ async def test_multiple_entries(qdrant_connector):
     assert any("Eiffel" in result.content for result in landmark_results)
 
     # Search for AI-related entries
-    ai_results = await qdrant_connector.search(
-        "artificial intelligence machine learning"
-    )
+    ai_results = await qdrant_connector.search("artificial intelligence machine learning")
     assert len(ai_results) > 0
     assert any("machine learning" in result.content.lower() for result in ai_results)
 
@@ -101,7 +111,7 @@ async def test_ensure_collection_exists(qdrant_connector):
     )
 
     # Storing an entry should create the collection
-    test_entry = Entry(content="Test content")
+    test_entry = Entry(document="__test_doc__", content="Test content")
     await qdrant_connector.store(test_entry)
 
     # Now the collection should exist
@@ -118,10 +128,12 @@ async def test_metadata_handling(qdrant_connector):
     metadata2 = {"source": "article", "tags": ["science", "research"]}
 
     await qdrant_connector.store(
-        Entry(content="Content with structured metadata", metadata=metadata1)
+        Entry(
+            document="__test_doc__", content="Content with structured metadata", metadata=metadata1
+        )
     )
     await qdrant_connector.store(
-        Entry(content="Content with list in metadata", metadata=metadata2)
+        Entry(document="__test_doc__", content="Content with list in metadata", metadata=metadata2)
     )
 
     # Search and verify metadata is preserved
@@ -151,7 +163,7 @@ async def test_metadata_handling(qdrant_connector):
 async def test_entry_without_metadata(qdrant_connector):
     """Test storing and retrieving entries without metadata."""
     # Store an entry without metadata
-    await qdrant_connector.store(Entry(content="Entry without metadata"))
+    await qdrant_connector.store(Entry(document="__test_doc__", content="Entry without metadata"))
 
     # Search and verify
     results = await qdrant_connector.search("without metadata")
@@ -169,15 +181,14 @@ async def test_custom_collection_store_and_search(qdrant_connector):
 
     # Store a test entry in the custom collection
     test_entry = Entry(
+        document="__test_doc__",
         content="This is stored in a custom collection",
         metadata={"custom": True},
     )
     await qdrant_connector.store(test_entry, collection_name=custom_collection)
 
     # Search in the custom collection
-    results = await qdrant_connector.search(
-        "custom collection", collection_name=custom_collection
-    )
+    results = await qdrant_connector.search("custom collection", collection_name=custom_collection)
 
     # Verify results
     assert len(results) == 1
@@ -198,12 +209,16 @@ async def test_multiple_collections(qdrant_connector):
 
     # Store entries in different collections
     entry_a = Entry(
-        content="This belongs to collection A", metadata={"collection": "A"}
+        document="__test_doc__",
+        content="This belongs to collection A",
+        metadata={"collection": "A"},
     )
     entry_b = Entry(
-        content="This belongs to collection B", metadata={"collection": "B"}
+        document="__test_doc__",
+        content="This belongs to collection B",
+        metadata={"collection": "B"},
     )
-    entry_default = Entry(content="This belongs to the default collection")
+    entry_default = Entry(document="__test_doc__", content="This belongs to the default collection")
 
     await qdrant_connector.store(entry_a, collection_name=collection_a)
     await qdrant_connector.store(entry_b, collection_name=collection_b)
@@ -230,9 +245,7 @@ async def test_nonexistent_collection_search(qdrant_connector):
     """Test searching in a collection that doesn't exist."""
     # Search in a collection that doesn't exist
     nonexistent_collection = f"nonexistent_{uuid.uuid4().hex}"
-    results = await qdrant_connector.search(
-        "test query", collection_name=nonexistent_collection
-    )
+    results = await qdrant_connector.search("test query", collection_name=nonexistent_collection)
 
     # Verify results
     assert len(results) == 0

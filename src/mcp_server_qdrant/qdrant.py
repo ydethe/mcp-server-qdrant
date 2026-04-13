@@ -19,6 +19,7 @@ class Entry(BaseModel):
     A single entry in the Qdrant collection.
     """
 
+    document: str
     content: str
     metadata: Metadata | None = None
 
@@ -40,6 +41,8 @@ class QdrantConnector:
         qdrant_api_key: str | None,
         collection_name: str | None,
         embedding_provider: EmbeddingProvider,
+        document_key: str,
+        content_key: str,
         qdrant_local_path: str | None = None,
         field_indexes: dict[str, models.PayloadSchemaType] | None = None,
     ):
@@ -47,6 +50,8 @@ class QdrantConnector:
         self._qdrant_api_key = qdrant_api_key
         self._default_collection_name = collection_name
         self._embedding_provider = embedding_provider
+        self._document_key = document_key
+        self._content_key = content_key
         self._client = AsyncQdrantClient(
             location=qdrant_url, api_key=qdrant_api_key, path=qdrant_local_path
         )
@@ -78,7 +83,11 @@ class QdrantConnector:
 
         # Add to Qdrant
         vector_name = self._embedding_provider.get_vector_name()
-        payload = {"document": entry.content, METADATA_PATH: entry.metadata}
+        payload = {
+            self._document_key: entry.document,
+            self._content_key: entry.content,
+            METADATA_PATH: entry.metadata,
+        }
         await self._client.upsert(
             collection_name=collection_name,
             points=[
@@ -131,10 +140,12 @@ class QdrantConnector:
 
         return [
             Entry(
-                content=result.payload["document"],
+                document=result.payload[self._document_key],
+                content=result.payload[self._content_key],
                 metadata=result.payload.get("metadata"),
             )
             for result in search_results.points
+            if result is not None and result.payload is not None
         ]
 
     async def _ensure_collection_exists(self, collection_name: str):

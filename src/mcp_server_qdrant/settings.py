@@ -50,20 +50,16 @@ class EmbeddingProviderSettings(BaseSettings):
 
 class FilterableField(BaseModel):
     name: str = Field(description="The name of the field payload field to filter on")
-    description: str = Field(
-        description="A description for the field used in the tool description"
-    )
+    description: str = Field(description="A description for the field used in the tool description")
     field_type: Literal["keyword", "integer", "float", "boolean"] = Field(
         description="The type of the field"
     )
-    condition: Literal["==", "!=", ">", ">=", "<", "<=", "any", "except"] | None = (
-        Field(
-            default=None,
-            description=(
-                "The condition to use for the filter. If not provided, the field will be indexed, but no "
-                "filter argument will be exposed to MCP tool."
-            ),
-        )
+    condition: Literal["==", "!=", ">", ">=", "<", "<=", "any", "except"] | None = Field(
+        default=None,
+        description=(
+            "The condition to use for the filter. If not provided, the field will be indexed, but no "
+            "filter argument will be exposed to MCP tool."
+        ),
     )
     required: bool = Field(
         default=False,
@@ -78,9 +74,9 @@ class QdrantSettings(BaseSettings):
 
     location: str | None = Field(default=None, validation_alias="QDRANT_URL")
     api_key: str | None = Field(default=None, validation_alias="QDRANT_API_KEY")
-    collection_name: str | None = Field(
-        default=None, validation_alias="COLLECTION_NAME"
-    )
+    document_key: str = Field(default="document", validation_alias="QDRANT_DOCUMENT_KEY")
+    content_key: str = Field(default="content", validation_alias="QDRANT_CONTENT_KEY")
+    collection_name: str | None = Field(default=None, validation_alias="COLLECTION_NAME")
     local_path: str | None = Field(default=None, validation_alias="QDRANT_LOCAL_PATH")
     search_limit: int = Field(default=10, validation_alias="QDRANT_SEARCH_LIMIT")
     read_only: bool = Field(default=False, validation_alias="QDRANT_READ_ONLY")
@@ -100,16 +96,12 @@ class QdrantSettings(BaseSettings):
         if self.filterable_fields is None:
             return {}
         return {
-            field.name: field
-            for field in self.filterable_fields
-            if field.condition is not None
+            field.name: field for field in self.filterable_fields if field.condition is not None
         }
 
     @model_validator(mode="after")
     def check_local_path_conflict(self) -> "QdrantSettings":
         if self.local_path:
             if self.location is not None or self.api_key is not None:
-                raise ValueError(
-                    "If 'local_path' is set, 'location' and 'api_key' must be None."
-                )
+                raise ValueError("If 'local_path' is set, 'location' and 'api_key' must be None.")
         return self

@@ -113,9 +113,7 @@ if __name__ == "__main__":
 
     def find(
         query: Annotated[str, Field(description="What to search for")],
-        collection_name: Annotated[
-            str, Field(description="The collection to search in")
-        ],
+        collection_name: Annotated[str, Field(description="The collection to search in")],
         query_filter: Optional[models.Filter] = None,
     ) -> list[str]:
         print("query", query)
@@ -145,6 +143,4 @@ if __name__ == "__main__":
     wrapped_find(query="dress", collection_name="test", color="red")
 
     print("get_function_type_hints(find)", get_function_type_hints(find))
-    print(
-        "get_function_type_hints(wrapped_find)", get_function_type_hints(wrapped_find)
-    )
+    print("get_function_type_hints(wrapped_find)", get_function_type_hints(wrapped_find))

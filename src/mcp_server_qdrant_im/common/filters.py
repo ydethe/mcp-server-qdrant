@@ -2,8 +2,8 @@ from typing import Any
 
 from qdrant_client import models
 
-from mcp_server_qdrant.qdrant import ArbitraryFilter
-from mcp_server_qdrant.settings import METADATA_PATH, FilterableField
+from ..qdrant import ArbitraryFilter
+from ..settings import METADATA_PATH, FilterableField
 
 
 def make_filter(

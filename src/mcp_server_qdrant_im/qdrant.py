@@ -5,8 +5,8 @@ from typing import Any
 from pydantic import BaseModel
 from qdrant_client import AsyncQdrantClient, models
 
-from mcp_server_qdrant.embeddings.base import EmbeddingProvider
-from mcp_server_qdrant.settings import METADATA_PATH
+from .embeddings.base import EmbeddingProvider
+from .settings import METADATA_PATH
 
 logger = logging.getLogger(__name__)
 

@@ -19,6 +19,6 @@ def main():
 
     # Import is done here to make sure environment variables are loaded
     # only after we make the changes.
-    from mcp_server_qdrant.server import mcp
+    from .server import mcp
 
     mcp.run(transport=args.transport)

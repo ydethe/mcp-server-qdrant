@@ -17,7 +17,7 @@ requires = ["hatchling", "uv-dynamic-versioning"]
 build-backend = "hatchling.build"
 
 [project.scripts]
-mcp-server-qdrant = "mcp_server_qdrant_im.main:main"
+mcp-server-qdrant-im = "mcp_server_qdrant_im.main:main"
 
 [tool.hatch.version]
 source = "uv-dynamic-versioning"
